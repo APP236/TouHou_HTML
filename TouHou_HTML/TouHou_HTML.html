@@ -1,0 +1,338 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>
+        Barrage
+    </title>
+    <style>
+        body {
+            background-image: url(images/select00.png);
+            background-repeat: no-repeat;
+        }
+
+        #Field {
+            height: 550px;
+            width: 500px;
+            margin: 0 auto;
+            /*border: dashed*/;
+            /*background-color: aliceblue;*/
+            position: relative;
+            overflow: hidden;
+            background-repeat: repeat-y;
+            top: 50px;
+            /*border: dashed;*/
+        }
+
+        #Tank {
+            /*height:200px;
+            width:200px;*/
+            /*显示调试*/
+            height: 47px;
+            width: 32px;
+            border: dashed;
+            position: absolute;
+            /*background-image: url(1.png);*/
+            bottom: 0px;
+            left: 250px;
+            background-repeat: no-repeat;
+        }
+
+        #enemyTank {
+            height: 71px;
+            width: 65px;
+            /*background-image: url(2.bmp);*/
+            position: absolute;
+            bottom: 400px;
+            left: 220px;
+        }
+
+        .PlayerBullet {
+            height: 64px;
+            width: 12px;
+            background-image: url(images/SpellCard.png);
+            position: absolute;
+            bottom: 0px;
+            left: 0px;
+            opacity: 0.9;
+            /*left:37.5px;
+            bottom:70px;*/
+        }
+
+        .EnemyBullet {
+            /*height: 33px;
+            width: 33px;*/
+            height: 33px;
+            width: 33px;
+            background-image: url(images/MLS.png);
+            position: absolute;
+            bottom: 0px;
+            left: 0px;
+            /*border: dashed;*/
+            /*left:37.5px;
+            bottom:70px;*/
+        }
+    </style>
+    <script>
+        var x = 250, y = 0;
+        var Ex = 220, Ey = 400;
+        // var i = 0;
+        var Ei = 0;
+        var EbulletX;
+        var EbulletY;
+        var EbulletVectorX;
+        var EbulletVectorY;
+        var animationCount = 0;
+        var bky = 0;
+        var row = 0;      
+        var R = 0;
+        var EnemyBalletDivs = document.getElementsByClassName("EnemyBullet");
+        var PlayerBalletDivs = document.getElementsByClassName("PlayerBullet");
+        var EnemyHP = 1000;
+        var direction = 10;
+        var SCORE = 0;
+        var R = 50;
+        var angle = 0;
+        ////////////////////////////////////////////////////////////声明变量
+        function AssetLoader() {
+            document.getElementById("Tank").style.backgroundImage = "url(images/pl00.png)";
+            document.getElementById("Field").style.backgroundImage = "url(images/stage01b.png)";
+            document.getElementById("enemyTank").style.backgroundImage = "url(images/stg4benm.png)";
+        }
+        ///////////////////////////////////////////////////////////////////////////////资源载入
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////V
+        function animation() {
+            AssetLoader();
+            setInterval(PlayerAnimation, 70);
+            setInterval(BorderCheck, 5);
+/*            setInterval(EPositionTransform, 50)*/;
+            setInterval(EnemyAddBarrage, 500);
+            setInterval(EnemyBarrageMove, 100);
+            //  setInterval(Ebarrage, 500);
+            // setInterval(Echange, 4);
+            // setInterval(caculate, 100);
+            setInterval(BackGroundScroll, 5);
+            setInterval(PlayerBarrageMove, 5);
+            setInterval(caculate, 50);
+
+            //setInterval(EPositionChange, 10);
+            //setInterval(document.getElementById("Field2").innerHTML = "SCORE" + SCORE,100);
+            document.getElementById("Field2").innerHTML = "SCORE:" + SCORE;
+
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////Update  A
+        /////////////////////////////////////////////////////////////////////////////////////////////方法
+        function PlayerAddBarrage() {
+            //document.getElementById("Field").innerHTML += "<div class='bulletClass' id='bullet" + i + "'></div>";
+            //document.getElementById("bullet" + i).style.backgroundimage = "url(images/SpellCard.png)";
+            var PBset = document.createElement("PBset");
+            PBset.className = "PlayerBullet";
+            PBset.style.bottom = y + 43 + "px";
+            PBset.style.left = x + 12 + "px";
+            document.getElementById("Field").appendChild(PBset);
+            // var div = document.creatElement("div");
+            // div.className = "PlayerBullet";
+            //div.style.bottom =30 +"px";
+            // game.addChild(div);
+            //document.getElementById("bullet" + i).style.bottom = (y + 40) + "px";
+            //document.getElementById("bullet" + i).style.left = (x + 15) + "px";
+            //Ybullet[i] = y + 70;
+            //i++;
+        }
+        function PlayerBarrageMove() {
+
+            for (var i = 0; i < PlayerBalletDivs.length; i++) {
+                PlayerBalletDivs[i].style.bottom = parseInt(PlayerBalletDivs[i].style.bottom) + 8 + "px";//43偏移2速度
+                //console.log(PlayerBalletDivs[i].style.bottom);
+                //console.log();
+                //PlayerBalletDivs[i].style.left = PlayerBalletDivs[i].offsetLeft + 20 + "px"
+                if (parseInt(PlayerBalletDivs[i].style.bottom) > 500) {
+                    document.getElementById("Field").removeChild(PlayerBalletDivs[i]);
+                    // game.removeChild(PlayerBalletDivs[i]);
+                }
+            }
+        }
+        function EnemyAddBarrage() {
+            var EBset = document.createElement("EBset");
+            EBset.className = "EnemyBullet";
+            EBset.style.bottom = Ey - 33 +EBarragePositionCaculator_1X()+ "px";
+            EBset.style.left = Ex + 16.5 + EBarragePositionCaculator_1Y() + "px";
+            document.getElementById("Field").appendChild(EBset);
+        }
+        function EnemyBarrageMove() {
+
+            for (var i = 0; i < EnemyBalletDivs.length; i++) {
+                EnemyBalletDivs[i].style.bottom = parseInt(EnemyBalletDivs[i].style.bottom) - Math.sin(angle) + "px";//
+                EnemyBalletDivs[i].style.left = parseInt(EnemyBalletDivs[i].style.left) - Math.cos(angle) + "px";                       ////速度方向
+                //console.log(EnemyBalletDivs[i].style.bottom);
+                //console.log();
+                //EnemyBalletDivs[i].style.left = EnemyBalletDivs[i].offsetLeft + 20 + "px"
+                if (parseInt(EnemyBalletDivs[i].style.bottom) < -33) {
+                    document.getElementById("Field").removeChild(EnemyBalletDivs[i]);
+                    // game.removeChild(EnemyBalletDivs[i]);
+                }
+            }
+        }
+
+        function BorderCheck() {
+            // for (var n = 0; n < Ybullet.length; n++) {
+
+            //    Ybullet[n] += 5;
+            //   document.getElementById("bullet" + n).style.bottom = Ybullet[n] + "px";
+
+            if (x <= 0) {
+                x = 0;
+            }
+            if (x >= 463) {
+                x = 463;
+            }
+            if (y <= 0) {
+                y = 0;
+            }
+            if (y >= 500) {
+                y = 500;
+            }
+        }
+        function caculate() {
+            for (var i = 0; i < PlayerBalletDivs.length; i++) {
+                var length = Math.sqrt((parseInt(PlayerBalletDivs[i].style.left) - Ex) * (parseInt(PlayerBalletDivs[i].style.left) - Ex) + (parseInt(PlayerBalletDivs[i].style.bottom) - Ey) * (parseInt(PlayerBalletDivs[i].style.bottom) - Ey));
+                if (length < 20) {
+                    //  console.log(SCORE);
+                    SCORE += 10;
+                    EnemyHP -= 50;
+                    console.log("命中");
+                }
+            }
+            for (var i = 0; i < EnemyBalletDivs.length; i++) {
+                var Dlength = Math.sqrt((parseInt(EnemyBalletDivs[i].style.left) - x) * (parseInt(EnemyBalletDivs[i].style.left) - x) + (parseInt(EnemyBalletDivs[i].style.bottom) - y) * (parseInt(EnemyBalletDivs[i].style.bottom) - y));
+                //console.log(Dlength)
+                if (Dlength < 10) {
+                    console.log("死亡");
+
+                }
+            }
+        }
+
+
+        // //function Ebarrage() {
+        //     document.getElementById("Field").innerHTML += "<div class='EbulletClass' id='Ebullet" + Ei + "'></div>";
+        //     document.getElementById("Ebullet" + Ei).style.backgroundPositionX = - Math.round(Math.random() * 10) * 32 + "px";
+        //     //console.log(- Math.round(Math.random() * 10));
+        //     document.getElementById("Ebullet" + Ei).style.bottom = (Ey + 0) + "px";
+        //     document.getElementById("Ebullet" + Ei).style.left = (Ex + 34) + "px";
+        //     EbulletY[Ei] = Ey;
+        //     EbulletX[Ei] = Ex;
+        //     Ei++;
+        // }
+        //// function Echange() {
+        //     for (var n = 0; n < EbulletY.length; n++) {
+        //         EbulletY[n] -= 1;
+        //         document.getElementById("Ebullet" + n).style.bottom = EbulletY[n] + "px";
+        //     }
+        // }
+        function EPositionTransform() {
+            if (Math.random() > 0.5) {
+                Ex = Ex - 1 + direction;
+                enemyTank.style.left = Ex + "px";
+            }
+            else {
+                Ex = Ex + 1 + direction;
+                enemyTank.style.left = Ex + "px";
+            }
+            if (Ex <= -10) {
+                Ex = -10;
+            }
+            if (Ex >= 500) {
+                Ex = 500;
+            }
+        }
+        function EPositionChange() {
+            if (Ex >= 410) {
+                direction = -10;
+            }
+            if (Ex <= 5) {
+                direction = 10;
+            }
+
+        }
+        function PlayerAnimation() {
+            document.getElementById("Tank").style.backgroundPositionX = -32 * animationCount + "px";
+            document.getElementById("Tank").style.backgroundPositionY = -row * 47 + "px";
+            if (animationCount == 7) {
+                animationCount = 0;
+                row = 0;
+            }
+            animationCount += 1;
+        }
+        function BackGroundScroll() {
+            bky += 1;
+            document.getElementById("Field").style.backgroundPositionY = bky + "px";
+        }
+
+        function EBarragePositionCaculator_1X() {
+            EbulletX = R * Math.cos(angle); 
+            return EbulletX;
+        }
+        function EBarragePositionCaculator_1Y() {
+            EbulletY = R * Math.sin(angle);
+            R += 3;
+            angle += 1;
+            if (R>250) {
+                R = 50;
+            }
+            //  console.log(y);            
+            return EbulletY;          
+        }
+        //R += 10;
+        //angle += 30;
+
+        function EBarragePositionCaculator_2(R) {
+
+        }
+        function EBarragePositionCaculator_3(R) {
+        }
+
+        //////////////////////////////////////////////////////////////////
+        document.onkeydown = function (e) {
+            if (e.keyCode == 37) {
+                x -= 5;
+                Tank.style.left = x + "px";
+                row = 1;
+            }
+            if (e.keyCode == 38) {
+                y += 5;
+                Tank.style.bottom = y + "px";
+            }
+            if (e.keyCode == 39) {
+                x += 5;
+                Tank.style.left = x + "px";
+                row = 2;
+            }
+            if (e.keyCode == 40) {
+                y -= 5;
+                Tank.style.bottom = y + "px";
+            }
+            if (e.keyCode == 65) {
+                PlayerAddBarrage();
+            }
+        }
+        /////////////////////////////////////////////////////////////////
+
+    </script>
+</head>
+<body onload="animation()">
+    <audio autoplay>
+        <source src="music/1.mp3" />
+    </audio>
+    <div id="Field">
+        <div id="Tank"></div>
+        <div id="enemyTank"></div>
+    </div>
+    <div id="Field2"></div>
+    <div>
+        <img src="images/title_logo.png" />
+    </div>
+</body>
+</html>
